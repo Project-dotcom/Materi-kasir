@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Belajar DOM Selection lewat Kode Kasir Warung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FBF8F2;
+    --surface: #FFFFFF;
+    --ink: #211C16;
+    --ink-soft: #5B5347;
+    --accent: #2F6B4F;
+    --accent-warm: #B5502F;
+    --line: #DED5C2;
+    --code-bg: #1F1B16;
+    --code-ink: #F3EFE6;
+    --code-comment: #9C9282;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15120E;
+      --surface: #1D1812;
+      --ink: #F0EAE0;
+      --ink-soft: #B9AFA0;
+      --accent: #6FBF97;
+      --accent-warm: #E08659;
+      --line: #3A342A;
+      --code-bg: #0B0906;
+      --code-ink: #F3EFE6;
+      --code-comment: #948A79;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15120E;
+    --surface: #1D1812;
+    --ink: #F0EAE0;
+    --ink-soft: #B9AFA0;
+    --accent: #6FBF97;
+    --accent-warm: #E08659;
+    --line: #3A342A;
+    --code-bg: #0B0906;
+    --code-ink: #F3EFE6;
+    --code-comment: #948A79;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  main {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+  header.page-head {
+    border-bottom: 1.5px dashed var(--line);
+    padding-bottom: 32px;
+    margin-bottom: 44px;
+  }
+  .eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    color: var(--accent);
+    margin: 0 0 14px;
+    word-break: break-all;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(28px, 5vw, 38px);
+    line-height: 1.2;
+    margin: 0 0 16px;
+  }
+  header.page-head p {
+    color: var(--ink-soft);
+    font-size: 16px;
+    max-width: 54ch;
+    margin: 0;
+  }
+  section { margin-bottom: 48px; }
+  h2 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    font-size: 22px;
+    margin: 0 0 6px;
+  }
+  h2 code {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 19px;
+    color: var(--accent);
+    background: none;
+    padding: 0;
+  }
+  .section-sub {
+    color: var(--ink-soft);
+    font-size: 14px;
+    margin: 0 0 18px;
+  }
+  p { margin: 0 0 14px; font-size: 16px; }
+  .note {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 14px 16px;
+    font-size: 15px;
+    color: var(--ink-soft);
+    margin: 16px 0;
+  }
+  .note strong { color: var(--ink); }
+
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    border-radius: 6px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13.5px;
+    line-height: 1.6;
+    margin: 0 0 14px;
+  }
+  code {
+    font-family: "JetBrains Mono", monospace;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 14px;
+  }
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+    color: inherit;
+  }
+  .cmt { color: var(--code-comment); }
+
+  hr.divider {
+    border: none;
+    border-top: 1.5px dashed var(--line);
+    margin: 48px 0;
+  }
+
+  /* Demo receipt */
+  .receipt {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 28px 26px;
+    box-shadow: 0 1px 0 var(--line);
+  }
+  .receipt h3 {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 20px;
+    margin: 0 0 4px;
+  }
+  .receipt .sub {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin: 0 0 20px;
+  }
+  .menu-list { margin-bottom: 20px; }
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--line);
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .menu-item:last-child { border-bottom: none; }
+  .menu-item input {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+  }
+  .menu-item .harga {
+    margin-left: auto;
+    font-family: "JetBrains Mono", monospace;
+    color: var(--ink-soft);
+    font-size: 13px;
+  }
+  .btn-row { display: flex; gap: 10px; margin-bottom: 22px; }
+  button {
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 4px;
+    padding: 10px 18px;
+    border: 1.5px solid var(--accent);
+    cursor: pointer;
+    transition: transform 0.08s ease;
+  }
+  button:active { transform: scale(0.97); }
+  #hitungBtn { background: var(--accent); color: var(--surface); }
+  #resetBtn { background: transparent; color: var(--accent); }
+  .total-row {
+    border-top: 1.5px dashed var(--line);
+    padding-top: 18px;
+  }
+  .total-label {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-transform: none;
+    margin: 0 0 4px;
+  }
+  #total {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 30px;
+    font-weight: 600;
+    color: var(--accent-warm);
+  }
+  #rincian {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-top: 8px;
+    min-height: 20px;
+  }
+
+  .copy-wrap { position: relative; }
+  .copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 4px;
+  }
+
+  footer {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1.5px dashed var(--line);
+    color: var(--ink-soft);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <header class="page-head">
+    <p class="eyebrow">materi javascript &middot; DOM selection</p>
+    <h1>Membaca Kode Kasir Warung, Baris demi Baris</h1>
+  </header>
+
+  <section>
+    <h2>Apa itu DOM</h2>
+    <p>DOM adalah singkatan dari Document Object Model. Ketika sebuah halaman HTML dibuka di browser, browser mengubah seluruh tag HTML itu menjadi struktur data yang bisa diakses dan diubah lewat JavaScript. Struktur inilah yang disebut DOM.</p>
+    <p>Karena HTML sudah diubah menjadi struktur data, JavaScript bisa mencari elemen tertentu, membaca isinya, mengubah teksnya, atau bahkan menghapusnya. Semua fungsi yang dibahas di halaman ini, yaitu getElementById, querySelector, dan querySelectorAll, adalah cara-cara untuk mencari elemen di dalam DOM.</p>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <h2><code>getElementById</code></h2>
+    <p class="section-sub">Mengambil satu elemen berdasarkan atribut id</p>
+    <p>Fungsi ini dipakai ketika sebuah elemen HTML sudah diberi atribut id, dan id itu bersifat unik, artinya hanya ada satu elemen dengan id tersebut di seluruh halaman. getElementById akan mencari elemen dengan id yang cocok dan mengembalikan elemen itu langsung, bukan berupa daftar.</p>
+    <pre><code><span class="cmt">// mengambil tombol dengan id="hitungBtn"</span>
+const hitungBtn = document.getElementById("hitungBtn");
+
+<span class="cmt">// mengambil span yang menampilkan angka total</span>
+const totalSpan = document.getElementById("total");</code></pre>
+    <p>Di dalam kode kasir, ada empat pemanggilan getElementById, yaitu untuk tombol hitung, tombol reset, teks total, dan teks rincian. Semuanya diambil di bagian awal script, lalu disimpan ke dalam variabel supaya bisa dipakai berulang kali tanpa perlu mencari elemen itu lagi.</p>
+  </section>
+
+  <section>
+    <h2><code>querySelectorAll</code></h2>
+    <p class="section-sub">Mengambil semua elemen yang cocok dengan sebuah selector CSS</p>
+    <p>Berbeda dari getElementById yang hanya mengambil satu elemen lewat id, querySelectorAll menerima selector CSS apa saja, misalnya nama class, nama tag, atau kombinasi keduanya, lalu mengembalikan semua elemen yang cocok dalam bentuk kumpulan yang disebut NodeList.</p>
+    <pre><code><span class="cmt">// mengambil SEMUA checkbox yang punya class "menu"</span>
+const semuaMenu = document.querySelectorAll(".menu");</code></pre>
+    <p>Pada kode kasir, ada empat checkbox menu, dan semuanya diberi class yang sama, yaitu menu. Baris kode di atas mengambil keempat checkbox itu sekaligus dan menyimpannya sebagai satu kumpulan bernama semuaMenu. Kumpulan inilah yang nanti diperiksa satu per satu untuk mengetahui menu mana saja yang dicentang pengguna.</p>
+    <div class="note"><strong>Perbedaan penting.</strong> getElementById mengembalikan satu elemen tunggal, sedangkan querySelectorAll selalu mengembalikan sebuah kumpulan, walaupun elemen yang cocok hanya satu.</div>
+  </section>
+
+  <section>
+    <h2><code>querySelector</code></h2>
+    <p class="section-sub">Mengambil satu elemen pertama yang cocok dengan selector</p>
+    <p>querySelector mirip dengan querySelectorAll karena sama-sama menerima selector CSS. Bedanya, querySelector berhenti mencari begitu menemukan elemen pertama yang cocok, lalu langsung mengembalikan elemen tunggal itu saja, bukan kumpulan.</p>
+    <pre><code><span class="cmt">// mengambil checkbox PERTAMA yang punya class "menu"</span>
+const menuPertama = document.querySelector(".menu");
+console.log("Menu pertama harganya: " + menuPertama.dataset.harga);</code></pre>
+    <p>Di kode kasir, baris ini dipakai sebagai contoh saja, untuk menunjukkan bahwa querySelector hanya mengambil elemen pertama yang ditemukan di dalam HTML, yaitu checkbox Nasi Goreng. Harganya kemudian ditampilkan di console browser lewat console.log.</p>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <h2><code>addEventListener</code></h2>
+    <p class="section-sub">Menjalankan sebuah fungsi ketika sebuah peristiwa terjadi pada elemen</p>
+    <p>Elemen yang sudah diambil dengan getElementById atau querySelector belum bisa berbuat apa-apa dengan sendirinya. addEventListener dipakai untuk memberi tahu elemen itu, agar ketika ada peristiwa tertentu terjadi, misalnya diklik, sebuah fungsi tertentu akan dijalankan.</p>
+    <pre><code>hitungBtn.addEventListener("click", function() {
+  <span class="cmt">// kode di dalam sini dijalankan setiap kali tombol diklik</span>
+});</code></pre>
+    <p>Parameter pertama, yaitu "click", menentukan jenis peristiwa yang ditunggu. Parameter kedua adalah fungsi yang akan dijalankan saat peristiwa itu terjadi. Pada kode kasir, ada dua addEventListener, satu terpasang pada tombol Hitung Total, dan satu lagi pada tombol Reset.</p>
+  </section>
+
+  <section>
+    <h2><code>dataset</code></h2>
+    <p class="section-sub">Membaca atribut khusus yang diawali data- pada sebuah elemen</p>
+    <p>Setiap checkbox menu diberi atribut tambahan bernama data-harga, contohnya data-harga="15000". Atribut yang diawali dengan data- ini disebut atribut kustom, dan JavaScript bisa membacanya lewat properti dataset.</p>
+    <pre><code>&lt;input type="checkbox" class="menu" data-harga="15000"&gt;
+
+<span class="cmt">// dibaca lewat JavaScript</span>
+item.dataset.harga  <span class="cmt">// hasilnya "15000", masih berupa teks</span></code></pre>
+    <p>Nama atribut data-harga, ketika dibaca lewat dataset, menjadi dataset.harga. Aturan penulisannya, tanda hubung dihilangkan dan huruf sesudahnya tidak perlu dikapitalkan karena hanya ada satu kata setelah data-.</p>
+  </section>
+
+  <section>
+    <h2><code>parseInt</code></h2>
+    <p class="section-sub">Mengubah teks angka menjadi angka yang bisa dihitung</p>
+    <p>Nilai yang diambil lewat dataset selalu berupa teks, walaupun isinya terlihat seperti angka. Teks tidak bisa dijumlahkan secara matematis, karena tanda plus pada dua teks hanya akan menggabungkannya, bukan menjumlahkannya. Oleh karena itu, parseInt dipakai untuk mengubah teks itu menjadi angka bulat.</p>
+    <pre><code>const harga = parseInt(item.dataset.harga);
+<span class="cmt">// "15000" (teks) menjadi 15000 (angka)</span></code></pre>
+    <div class="note"><strong>Kenapa ini penting.</strong> Kalau parseInt tidak dipakai, "15000" + "12000" akan menghasilkan teks "1500012000", bukan angka 27000. Ini adalah kesalahan yang sering terjadi ketika data diambil langsung dari HTML.</div>
+  </section>
+
+  <section>
+    <h2><code>forEach</code></h2>
+    <p class="section-sub">Menjalankan sebuah fungsi untuk setiap elemen di dalam sebuah kumpulan</p>
+    <p>Karena querySelectorAll mengembalikan kumpulan berupa NodeList, kumpulan itu perlu diperiksa satu per satu untuk mengetahui bagian mana yang dicentang. forEach adalah cara untuk melakukan itu, yaitu menjalankan satu fungsi yang sama untuk tiap elemen di dalam kumpulan, secara berurutan.</p>
+    <pre><code>semuaMenu.forEach(function(item) {
+  if (item.checked) {
+    <span class="cmt">// item adalah satu checkbox yang sedang diperiksa</span>
+  }
+});</code></pre>
+    <p>Pada kode kasir, forEach dipakai dua kali. Pertama, di dalam tombol Hitung Total, untuk memeriksa checkbox mana yang berstatus checked lalu menjumlahkan harganya. Kedua, di dalam tombol Reset, untuk mengatur ulang semua checkbox menjadi tidak tercentang.</p>
+  </section>
+
+  <section>
+    <h2><code>toLocaleString</code></h2>
+    <p class="section-sub">Memformat angka menjadi format ribuan sesuai suatu wilayah</p>
+    <p>Angka total yang sudah dihitung masih berupa angka polos, misalnya 27000. Supaya lebih mudah dibaca sebagai uang, angka itu perlu diberi titik pemisah ribuan. toLocaleString("id-ID") mengubah angka mengikuti format penulisan Indonesia, sehingga 27000 menjadi 27.000.</p>
+    <pre><code>total.toLocaleString("id-ID")
+<span class="cmt">// 27000 menjadi "27.000"</span></code></pre>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <h2>Alur kerja lengkap program</h2>
+    <p class="section-sub">Urutan yang terjadi ketika tombol Hitung Total diklik</p>
+    <ol>
+      <li>Peristiwa klik terdeteksi oleh addEventListener pada hitungBtn, dan fungsi di dalamnya mulai dijalankan.</li>
+      <li>Dua variabel disiapkan, yaitu total yang diisi angka 0, dan daftarPilihan yang berupa array kosong untuk menampung nama menu yang dipilih.</li>
+      <li>forEach berjalan pada semuaMenu, memeriksa checkbox satu per satu.</li>
+      <li>Untuk setiap checkbox yang berstatus checked, harganya dibaca lewat dataset.harga, diubah menjadi angka lewat parseInt, lalu ditambahkan ke variabel total.</li>
+      <li>Nama menu diambil dari teks label, bagian sebelum tanda kurung buka, kemudian dimasukkan ke dalam daftarPilihan.</li>
+      <li>Setelah forEach selesai memeriksa semua checkbox, program mengecek apakah total masih 0. Jika ya, artinya belum ada menu yang dipilih, dan pesan itu yang ditampilkan.</li>
+      <li>Jika total lebih dari 0, angka total diformat dengan toLocaleString dan ditampilkan di totalSpan, sementara daftar nama menu digabung dengan koma dan ditampilkan di rincianP.</li>
+    </ol>
+    <p>Tombol Reset bekerja lebih sederhana. forEach dipakai lagi untuk mengubah properti checked pada setiap checkbox menjadi false, lalu teks total dan rincian dikosongkan kembali.</p>
+  </section>
+
+  <hr class="divider">
+
+  <section>
+    <h2>Coba langsung</h2>
+    <div class="receipt">
+      <h3>Kasir Warung</h3>
+      <p class="sub">pilih menu, lalu tekan hitung total</p>
+      <div class="menu-list">
+        <label class="menu-item"><input type="checkbox" class="menu" data-harga="15000"><span>Nasi Goreng</span><span class="harga">Rp15.000</span></label>
+        <label class="menu-item"><input type="checkbox" class="menu" data-harga="12000"><span>Mie Ayam</span><span class="harga">Rp12.000</span></label>
+        <label class="menu-item"><input type="checkbox" class="menu" data-harga="8000"><span>Es Teh</span><span class="harga">Rp8.000</span></label>
+        <label class="menu-item"><input type="checkbox" class="menu" data-harga="5000"><span>Kerupuk</span><span class="harga">Rp5.000</span></label>
+      </div>
+      <div class="btn-row">
+        <button id="hitungBtn">Hitung Total</button>
+        <button id="resetBtn">Reset</button>
+      </div>
+      <div class="total-row">
+        <p class="total-label">Total belanja</p>
+        <div id="total">Rp0</div>
+        <p id="rincian"></p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Kode lengkap</h2>
+    <div class="copy-wrap">
+      <button class="copy-btn" onclick="salinKode()">Salin kode</button>
+      <pre id="fullcode">&lt;!DOCTYPE html&gt;
+&lt;html lang="id"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Kasir Sederhana&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Kasir Warung&lt;/h1&gt;
+    &lt;hr&gt;
+
+    &lt;h3&gt;Pilih Menu:&lt;/h3&gt;
+    &lt;label&gt;&lt;input type="checkbox" class="menu" data-harga="15000"&gt; Nasi Goreng (Rp15.000)&lt;/label&gt;&lt;br&gt;
+    &lt;label&gt;&lt;input type="checkbox" class="menu" data-harga="12000"&gt; Mie Ayam (Rp12.000)&lt;/label&gt;&lt;br&gt;
+    &lt;label&gt;&lt;input type="checkbox" class="menu" data-harga="8000"&gt;  Es Teh (Rp8.000)&lt;/label&gt;&lt;br&gt;
+    &lt;label&gt;&lt;input type="checkbox" class="menu" data-harga="5000"&gt;  Kerupuk (Rp5.000)&lt;/label&gt;&lt;br&gt;
+
+    &lt;br&gt;
+    &lt;button id="hitungBtn"&gt;Hitung Total&lt;/button&gt;
+    &lt;button id="resetBtn"&gt;Reset&lt;/button&gt;
+
+    &lt;h3&gt;Total: &lt;span id="total"&gt;Rp0&lt;/span&gt;&lt;/h3&gt;
+    &lt;p id="rincian"&gt;&lt;/p&gt;
+
+    &lt;script&gt;
+        // ==========================================
+        // 1. getElementById -&gt; ambil elemen TUNGGAL
+        // ==========================================
+        const hitungBtn = document.getElementById("hitungBtn");
+        const resetBtn  = document.getElementById("resetBtn");
+        const totalSpan = document.getElementById("total");
+        const rincianP  = document.getElementById("rincian");
+
+        // ==========================================
+        // 2. querySelectorAll -&gt; ambil SEMUA menu
+        // ==========================================
+        const semuaMenu = document.querySelectorAll(".menu");
+
+        // ==========================================
+        // 3. querySelector -&gt; ambil SATU menu (contoh)
+        // ==========================================
+        const menuPertama = document.querySelector(".menu");
+        console.log("Menu pertama harganya: " + menuPertama.dataset.harga);
+
+        // ==========================================
+        // FUNGSI: Hitung total belanja
+        // ==========================================
+        hitungBtn.addEventListener("click", function() {
+            let total = 0;
+            let daftarPilihan = [];
+
+            // Loop semua menu, cek mana yang dicentang
+            semuaMenu.forEach(function(item) {
+                if (item.checked) {
+                    const harga = parseInt(item.dataset.harga);
+                    total += harga;
+                    // Ambil label teksnya (buang bagian harga)
+                    const nama = item.parentElement.textContent.split("(")[0].trim();
+                    daftarPilihan.push(nama);
+                }
+            });
+
+            // Tampilkan hasil
+            if (total === 0) {
+                totalSpan.textContent = "Rp0";
+                rincianP.textContent = "Belum ada menu yang dipilih.";
+            } else {
+                totalSpan.textContent = "Rp" + total.toLocaleString("id-ID");
+                rincianP.textContent = "Menu dipilih: " + daftarPilihan.join(", ");
+            }
+        });
+
+        // ==========================================
+        // FUNGSI: Reset semua pilihan
+        // ==========================================
+        resetBtn.addEventListener("click", function() {
+            // querySelectorAll dipakai lagi untuk loop
+            semuaMenu.forEach(function(item) {
+                item.checked = false;
+            });
+            totalSpan.textContent = "Rp0";
+            rincianP.textContent = "";
+        });
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+    </div>
+    <p>Kode ini bisa disalin ke dalam sebuah file baru, misalnya diberi nama kasir.html, lalu dibuka langsung lewat browser tanpa memerlukan server atau instalasi apa pun.</p>
+  </section>
+
+
+</main>
+
+<script>
+  // Demo kasir yang berjalan di halaman ini, sama persis dengan kode yang ditampilkan
+  const hitungBtn = document.getElementById("hitungBtn");
+  const resetBtn  = document.getElementById("resetBtn");
+  const totalSpan = document.getElementById("total");
+  const rincianP  = document.getElementById("rincian");
+  const semuaMenu = document.querySelectorAll(".menu");
+
+  hitungBtn.addEventListener("click", function() {
+    let total = 0;
+    let daftarPilihan = [];
+
+    semuaMenu.forEach(function(item) {
+      if (item.checked) {
+        const harga = parseInt(item.dataset.harga);
+        total += harga;
+        const nama = item.parentElement.querySelector("span").textContent.trim();
+        daftarPilihan.push(nama);
+      }
+    });
+
+    if (total === 0) {
+      totalSpan.textContent = "Rp0";
+      rincianP.textContent = "Belum ada menu yang dipilih.";
+    } else {
+      totalSpan.textContent = "Rp" + total.toLocaleString("id-ID");
+      rincianP.textContent = "Menu dipilih: " + daftarPilihan.join(", ");
+    }
+  });
+
+  resetBtn.addEventListener("click", function() {
+    semuaMenu.forEach(function(item) {
+      item.checked = false;
+    });
+    totalSpan.textContent = "Rp0";
+    rincianP.textContent = "";
+  });
+
+  function salinKode() {
+    try {
+      const teks = document.getElementById("fullcode").textContent;
+      navigator.clipboard.writeText(teks).then(function() {
+        const btn = document.querySelector(".copy-btn");
+        const asli = btn.textContent;
+        btn.textContent = "Tersalin";
+        setTimeout(function() { btn.textContent = asli; }, 1500);
+      });
+    } catch (e) {
+      console.log("Gagal menyalin otomatis, silakan salin manual.");
+    }
+  }
+</script>
+</body>
+</html>
